@@ -11,6 +11,47 @@ no shared mutable state.
 
 ---
 
+## Real-World Context
+
+This simulation is based on a production system I helped design and implement
+in the mobile advertising space. I built the consumption layer — the platform
+responsible for taking MAB algorithm outputs and turning them into real-world
+serving decisions: which creative to allocate impressions to, when to
+reallocate, and how to surface that information in a consumable form for
+campaign teams.
+
+The system handled all major ad formats — video, static, HTML, and
+experimental — across campaigns that frequently included **100+ creative
+variants simultaneously**.
+
+The problems this was built to solve were real and costly:
+
+- Creatives were composed of multiple dimensions (headline, image, CTA, format),
+  making exhaustive sequential A/B testing infeasible at campaign timescales
+- Traditional testing led to slow iteration cycles and significant wasted spend
+  on underperforming variants that kept receiving equal traffic throughout a test
+- Campaign teams were bottlenecked waiting for test results rather than acting
+  on them
+
+Moving to adaptive allocation produced measurable outcomes:
+
+- **Orders-of-magnitude faster convergence** to high-performing creatives —
+  campaigns that previously required weeks of sequential testing were optimised
+  within a fraction of that time
+- **Significant reduction in wasted impressions** — in campaigns with 100+
+  variants, the system continuously redirected budget away from underperformers
+  rather than waiting for a test window to close
+- **Projected ~$2M in quarterly savings** across time and operational costs,
+  driven by faster iteration cycles and reduced analyst overhead managing
+  sequential test pipelines
+
+The core engineering challenge was not the algorithm — it was operationalising
+it: getting MAB calculations to run efficiently at scale, and building the
+consumption infrastructure that turned statistical outputs into decisions a
+campaign platform could act on in real time.
+
+---
+
 ## The Problem
 
 You have three creative dimensions to test:
@@ -86,6 +127,9 @@ algorithm keeps exploring in case it made an early mistake.
 
 This turns the three-phase sequential problem into **one parallel experiment**.
 All 18 arms compete from trial 1.
+
+In production, this approach shifts experimentation from a fixed-horizon
+decision problem to a continuous optimization system.
 
 ---
 
@@ -182,9 +226,9 @@ impressions — and that's assuming perfectly uniform exploration, which no
 algorithm does. In practice, arms that look bad early get fewer impressions,
 which means their CTR estimates stay noisy.
 
-**Notice what happened in this simulation:** Thompson Sampling performed *worse*
-than epsilon-greedy (regret 112 vs 41). This is not a bug — it is the
-cold-start problem made visible.
+**Notice what happened in this simulation:** In this low-data regime, Thompson
+Sampling underperformed epsilon-greedy (regret 112 vs 41). This is not a bug
+— it is the cold-start problem made visible under constrained impressions.
 
 Thompson starts with flat `Beta(1, 1)` priors on all 18 arms. With uniform
 uncertainty across 18 arms, early sampling is nearly random. The algorithm
