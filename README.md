@@ -13,12 +13,13 @@ no shared mutable state.
 
 ## Real-World Context
 
-This simulation is based on a production system I helped design and implement
-in the mobile advertising space. I built the consumption layer — the platform
+This simulation is based on a production system built in the mobile advertising
+space. I was a contributing engineer on the initial product team, helping take
+the platform from a hackathon prototype to a production-ready product serving
+external customers — with a focus on the consumption layer: the infrastructure
 responsible for taking MAB algorithm outputs and turning them into real-world
 serving decisions: which creative to allocate impressions to, when to
-reallocate, and how to surface that information in a consumable form for
-campaign teams.
+reallocate, and how to surface that data in a form campaign teams could act on.
 
 The system handled all major ad formats — video, static, HTML, and
 experimental — across campaigns that frequently included **100+ creative
